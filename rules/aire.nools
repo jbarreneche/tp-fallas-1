@@ -1,0 +1,189 @@
+define Edificio {
+    desarrollo : null,
+    pisos : null
+}
+
+define Vivienda {
+    tamanio : null
+}
+
+define Region {
+    clima : null,
+    variabilidadTemp : null
+}
+
+define Infraestructura {
+    gas : null,
+    electricidad : null,
+    vapor : null,
+    combustible : null
+}
+
+define Sistema {
+    nombre : null,
+    tipo : null,
+    distribucion : null,
+    velocidadRegulacion : null,
+    costoInstalacion : null,
+    costoMantenimiento : null,
+    permiteZonificacion : null
+}
+
+rule ClimaFrio {
+    when {
+        r : Region r.clima == 'frio';
+        s : Sistema s.tipo == null;
+    }
+    then {
+        modify(s, function() { s.tipo = 'calor' })
+    }
+}
+
+rule ClimaCalido {
+    when {
+        r : Region r.clima == 'calido';
+        s : Sistema s.tipo == null;
+    }
+    then {
+        modify(s, function() { s.tipo = 'frio' })
+    }
+}
+
+rule TemperaturaVariable {
+    when {
+        r : Region r.variabilidadTemp == 'alta';
+        s : Sistema s.velocidadRegulacion == null;
+    }
+    then {
+        modify(s, function() { s.velocidadRegulacion = 'rapida' })
+    }
+}
+
+rule SistemaGas {
+    when {
+        v : Vivienda v.tamanio != 'muy grande';
+        i : Infraestructura i.gas == true;
+        s : Sistema s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Estufa de gas' })
+    }
+}
+
+rule SistemaVapor {
+    when {
+        i : Infraestructura i.vapor == true;
+        s : Sistema s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Calefacción por vapor' })
+    }
+}
+
+rule SistemaPaneles {
+    when {
+        i : Infraestructura i.gas == true || i.combustible == true;
+        s : Sistema s.velocidadRegulacion != 'rapida' && s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Calefacción por paneles radiantes' })
+    }
+}
+
+rule SistemaSplit {
+    when {
+        v : Vivienda v.tamanio != 'muy grande';
+        i : Infraestructura i.electricidad == true;
+        s : Sistema s.tipo != 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Split' })
+    }
+}
+
+rule SistemaCompacto1 {
+    when {
+        v : Vivienda v.tamanio == 'muy grande';
+        i : Infraestructura i.gas == true;
+        s : Sistema s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Compacto' })
+    }
+}
+
+rule SistemaCompacto2 {
+    when {
+        v : Vivienda v.tamanio == 'muy grande';
+        i : Infraestructura i.gas == true && i.electricidad == true;
+        s : Sistema s.tipo != 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Compacto' })
+    }
+}
+
+rule SistemaCompacto3 {
+    when {
+        e : Edificio e.desarrollo == 'horizontal';
+        i : Infraestructura i.gas == true;
+        s : Sistema s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Compacto' })
+    }
+}
+
+rule SistemaCompacto4 {
+    when {
+        e : Edificio e.desarrollo == 'horizontal';
+        i : Infraestructura i.gas == true && i.electricidad == true;
+        s : Sistema s.tipo != 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Compacto' })
+    }
+}
+
+rule SistemaAguaCaliente {
+    when {
+        e : Edificio;
+        i : Infraestructura i.gas == true && i.electricidad == true;
+        r : Region r.clima != 'frio';
+        s : Sistema s.tipo == 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Calefacción por agua caliente' })
+    }
+}
+
+rule SistemaTodoAire {
+    when {
+        e : Edificio e.desarrollo == 'horizontal';
+        s : Sistema s.tipo != 'calor';
+    }
+    then {
+        modify(s, function() { s.nombre = 'Todo Aire' })
+    }
+}
+
+rule SistemaVRV {
+    when {
+        e : Edificio e.desarrollo == 'vertical' && e.pisos >= 30;
+        s : Sistema s.nombre == null;
+    }
+    then {
+        modify(s, function() { s.nombre = 'VRV' })
+    }
+}
+
+rule SistemaFanCoil {
+    when {
+        e : Edificio e.desarrollo == 'vertical' && e.pisos < 30;
+        s : Sistema s.nombre == null;
+    }
+    then {
+        modify(s, function() { s.nombre = 'Fan-Coil' })
+    }
+}
+

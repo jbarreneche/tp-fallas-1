@@ -1,3 +1,8 @@
+define Region {
+    clima : null,
+    variabilidadTemp : null
+}
+
 define Edificio {
     desarrollo : null,
     pisos : null
@@ -5,11 +10,6 @@ define Edificio {
 
 define Vivienda {
     tamanio : null
-}
-
-define Region {
-    clima : null,
-    variabilidadTemp : null
 }
 
 define Infraestructura {
@@ -32,7 +32,7 @@ define Sistema {
 rule ClimaFrio {
     when {
         r : Region r.clima == 'frio';
-        s : Sistema s.tipo == null;
+        s : Sistema isUndefinedOrNull(s.tipo);
     }
     then {
         modify(s, function() { s.tipo = 'calor' })
@@ -42,7 +42,7 @@ rule ClimaFrio {
 rule ClimaCalido {
     when {
         r : Region r.clima == 'calido';
-        s : Sistema s.tipo == null;
+        s : Sistema isUndefinedOrNull(s.tipo);
     }
     then {
         modify(s, function() { s.tipo = 'frio' })
@@ -52,7 +52,7 @@ rule ClimaCalido {
 rule TemperaturaVariable {
     when {
         r : Region r.variabilidadTemp == 'alta';
-        s : Sistema s.velocidadRegulacion == null;
+        s : Sistema isUndefinedOrNull(s.velocidadRegulacion);
     }
     then {
         modify(s, function() { s.velocidadRegulacion = 'rapida' })
@@ -62,8 +62,8 @@ rule TemperaturaVariable {
 rule SistemaGas {
     when {
         v : Vivienda v.tamanio != 'muy grande';
-        i : Infraestructura i.gas == true;
-        s : Sistema s.tipo == 'calor';
+        i : Infraestructura isTrue(i.gas);
+        s : Sistema isUndefinedOrNull(s.nombre) && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Estufa de gas' })
@@ -72,8 +72,8 @@ rule SistemaGas {
 
 rule SistemaVapor {
     when {
-        i : Infraestructura i.vapor == true;
-        s : Sistema s.tipo == 'calor';
+        i : Infraestructura isTrue(i.vapor);
+        s : Sistema isUndefinedOrNull(s.nombre) && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Calefacción por vapor' })
@@ -82,8 +82,9 @@ rule SistemaVapor {
 
 rule SistemaPaneles {
     when {
-        i : Infraestructura i.gas == true || i.combustible == true;
-        s : Sistema s.velocidadRegulacion != 'rapida' && s.tipo == 'calor';
+        i : Infraestructura isTrue(i.gas) || isTrue(i.combustible);
+        s : Sistema isUndefinedOrNull(s.nombre) && isString(s.velocidadRegulacion)
+            && s.velocidadRegulacion != 'rapida' && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Calefacción por paneles radiantes' })
@@ -93,8 +94,8 @@ rule SistemaPaneles {
 rule SistemaSplit {
     when {
         v : Vivienda v.tamanio != 'muy grande';
-        i : Infraestructura i.electricidad == true;
-        s : Sistema s.tipo != 'calor';
+        i : Infraestructura isTrue(i.electricidad);
+        s : Sistema isUndefinedOrNull(s.nombre) && isString(s.tipo) && s.tipo != 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Split' })
@@ -104,8 +105,8 @@ rule SistemaSplit {
 rule SistemaCompacto1 {
     when {
         v : Vivienda v.tamanio == 'muy grande';
-        i : Infraestructura i.gas == true;
-        s : Sistema s.tipo == 'calor';
+        i : Infraestructura isTrue(i.gas);
+        s : Sistema isUndefinedOrNull(s.nombre) && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Compacto' })
@@ -115,8 +116,8 @@ rule SistemaCompacto1 {
 rule SistemaCompacto2 {
     when {
         v : Vivienda v.tamanio == 'muy grande';
-        i : Infraestructura i.gas == true && i.electricidad == true;
-        s : Sistema s.tipo != 'calor';
+        i : Infraestructura isTrue(i.gas) && isTrue(i.electricidad);
+        s : Sistema isUndefinedOrNull(s.nombre) && isString(s.tipo) && s.tipo != 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Compacto' })
@@ -126,8 +127,8 @@ rule SistemaCompacto2 {
 rule SistemaCompacto3 {
     when {
         e : Edificio e.desarrollo == 'horizontal';
-        i : Infraestructura i.gas == true;
-        s : Sistema s.tipo == 'calor';
+        i : Infraestructura isTrue(i.gas);
+        s : Sistema isUndefinedOrNull(s.nombre) && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Compacto' })
@@ -137,8 +138,8 @@ rule SistemaCompacto3 {
 rule SistemaCompacto4 {
     when {
         e : Edificio e.desarrollo == 'horizontal';
-        i : Infraestructura i.gas == true && i.electricidad == true;
-        s : Sistema s.tipo != 'calor';
+        i : Infraestructura isTrue(i.gas) && isTrue(i.electricidad);
+        s : Sistema isUndefinedOrNull(s.nombre) && isString(s.tipo) && s.tipo != 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Compacto' })
@@ -148,9 +149,9 @@ rule SistemaCompacto4 {
 rule SistemaAguaCaliente {
     when {
         e : Edificio;
-        i : Infraestructura i.gas == true && i.electricidad == true;
+        i : Infraestructura isTrue(i.gas) && isTrue(i.electricidad);
         r : Region r.clima != 'frio';
-        s : Sistema s.tipo == 'calor';
+        s : Sistema isUndefinedOrNull(s.nombre) && s.tipo == 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Calefacción por agua caliente' })
@@ -160,7 +161,7 @@ rule SistemaAguaCaliente {
 rule SistemaTodoAire {
     when {
         e : Edificio e.desarrollo == 'horizontal';
-        s : Sistema s.tipo != 'calor';
+        s : Sistema isUndefinedOrNull(s.nombre) && isString(s.tipo) && s.tipo != 'calor';
     }
     then {
         modify(s, function() { s.nombre = 'Todo Aire' })
@@ -170,7 +171,7 @@ rule SistemaTodoAire {
 rule SistemaVRV {
     when {
         e : Edificio e.desarrollo == 'vertical' && e.pisos >= 30;
-        s : Sistema s.nombre == null;
+        s : Sistema isUndefinedOrNull(s.nombre);
     }
     then {
         modify(s, function() { s.nombre = 'VRV' })
@@ -180,7 +181,7 @@ rule SistemaVRV {
 rule SistemaFanCoil {
     when {
         e : Edificio e.desarrollo == 'vertical' && e.pisos < 30;
-        s : Sistema s.nombre == null;
+        s : Sistema isUndefinedOrNull(s.nombre);
     }
     then {
         modify(s, function() { s.nombre = 'Fan-Coil' })

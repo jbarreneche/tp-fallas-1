@@ -3,143 +3,146 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <link type="text/css" rel="stylesheet" href="assets/conways.css"> -->
-    <link type="text/css" rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
-    <link href='http://fonts.googleapis.com/css?family=Londrina+Shadow' rel='stylesheet' type='text/css'>
-    <title>Diagnose Me</title>
+    <title>Elección de Sistema de Aire Acondicionado</title>
+    <link rel="stylesheet" href="/css/normalize.css">
+    <link rel="stylesheet" href="/css/foundation.css">
+    <script type="text/javascript" src="/js/modernizr.js"></script>
 </head>
 <body>
-
-
-<div class="diagnose middle">
-    <div class="header">
-        <h1>Diagnose Me</h1>
+<div class="row">
+    <div class="large-12 columns">
+        <h1>Elección de sistema de aire acondicionado</h1>
     </div>
 
-    <div class="editor-container">
-        <div id="editor"></div>
-    </div>
-
-    <div class="diagnose-container inline">
-<!--         <form action="#">
-            <div class="errors"></div>
-            <label for="name">Patient Name</label>
-            <input type="text" id="name"/>
-            <label for="fever">Fever</label>
-            <select id="fever">
-                <option value="">None</option>
-                <option value="high">High</option>
-                <option value="mild">Mild</option>
-            </select>
-
-            <div>
-                <label for="spots">Spots</label>
-                <input type="checkbox" id="spots"/>
+    <div class="large-12 columns">
+        <form action="javascript:null">
+            <div class="row">
+                <div class="large-6 columns">
+                    <label>Clima
+                        <select name="region[clima]">
+                            <option value="frio">Frío</option>
+                            <option value="templado">Templado</option>
+                            <option value="calido">Cálido</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="large-6 columns">
+                    <label>Variabilidad de temperatura
+                        <select name="region[variabilidadTemp]">
+                            <option value="baja">Baja</option>
+                            <option value="normal">Normal</option>
+                            <option value="alta">Alta</option>
+                        </select>
+                    </label>
+                </div>
             </div>
-            <div>
-                <label for="rash">Rash</label>
-                <input type="checkbox" id="rash"/>
+            <div class="row">
+                <div class="large-12 columns">
+                    <label>Tipo edificacion
+                        <select name="tipoEdificacion">
+                            <option value="edificio">Edificio de Viviendas</option>
+                            <option value="vivienda">Vivienda individual</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="large-6 columns">
+                    <label>Desarrollo
+                        <select name="edificio[desarrollo]">
+                            <option value="horizontal">Horizontal</option>
+                            <option value="vertical">Vertical</option>
+                        </select>
+                    </label>
+                </div>
+                <div class="large-6 columns">
+                    <label>Pisos
+                        <input type="number" min="2" value="10" />
+                    </label>
+                </div>
+                <div class="large-12 columns">
+                    <label>Tamaño
+                        <select name="vivienda[tamanio]">
+                            <option value="chica">Chica</option>
+                            <option value="mediana">Mediana</option>
+                            <option value="grande">Grande</option>
+                            <option value="muy grande">Muy Grande</option>
+                        </select>
+                    </label>
+                </div>
             </div>
-            <div>
-                <label for="sore_throat">Sore Throat</label>
-                <input type="checkbox" id="sore_throat"/>
-            </div>
-            <div>
-                <label for="innoculated">Innoculated</label>
-                <input type="checkbox" id="innoculated"/>
+            <div class="row">
+                <div class="large-12 columns">
+                    <label>Infraestructura</label>
+                    <input id="infraestructura_gas" type="checkbox" name="infraestructura[gas]" checked value="true"><label for="infraestructura_gas">Gas</label>
+                    <input id="infraestructura_electricidad" type="checkbox" name="infraestructura[electricidad]" checked value="true"><label for="infraestructura_electricidad">Electricidad</label>
+                    <input id="infraestructura_vapor" type="checkbox" name="infraestructura[vapor]" value="true"><label for="infraestructura_vapor">Vapor</label>
+                    <input id="infraestructura_combustible" type="checkbox" name="infraestructura[combustible]" value="true"><label for="infraestructura_combustible">Combustible</label>
+                </div>
             </div>
             <input type="submit" value="Diagnose"/>
         </form>
         <hr/>
- -->        <h2>Diagnoses</h2>
+        <h2>Sistema</h2>
 
-        <div id="results_container"></div>
+        <dl id="mejor-sistema">
+            <dt>Nombre</dt>
+            <dd class="nombre"></dd>
+        </dl>
     </div>
 
 </div>
 
-<script type="text/javascript" src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script type="text/javascript" src="/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="/js/jquery.serializejson.min.js"></script>
 <script type="text/javascript" src="/js/nools.js"></script>
+<script type="text/javascript" src="/js/foundation.min.js"></script>
+
 <script type="text/javascript">
-    var flow;
+    $(document).foundation();
+
     $(document).ready(function () {
+        var $aireForm = $('form'),
+            $resultado = $('#mejor-sistema'),
+            $tipoEdificacion = $aireForm.find('[name=tipoEdificacion]')
+            processing = false;
+
         $.ajax({
             url: "/rules/aire.nools"
-        }).then(function (res) {
-
-            // var resultsContainer = $("#results_container"),
-            //     Patient = flow.getDefined("patient");
-            flow = nools.compile(res, {name: "aire"});
-            var Edificio = flow.getDefined("Edificio"),
+        }).then(function (response) {
+            var flow     = nools.compile(response, {name: "aire"}),
+                Edificio = flow.getDefined("Edificio"),
                 Vivienda = flow.getDefined("Vivienda"),
                 Region   = flow.getDefined("Region"),
                 Infraestructura = flow.getDefined("Infraestructura"),
                 Sistema = flow.getDefined("Sistema");
 
-        //             function clear() {
-        //                 $("#fever").val("");
-        //                 $("#spots").attr("checked", false);
-        //                 $("#rash").attr("checked", false);
-        //                 $("#sore_throat").attr("checked", false);
-        //                 $("#innoculated").attr("checked", false);
-        //                 $("#name").val("");
-        //             }
+            $aireForm.submit(function() {
+                // Avoid double clicking
+                if (processing) { return; }
+                processing  = true;
 
-        //             function createPatient() {
-        //                 return new Patient({
-        //                     name: $("#name").val(),
-        //                     fever: $("#fever").val(),
-        //                     spots: $("#spots").is(":checked"),
-        //                     rash: $("#rash").is(":checked"),
-        //                     soreThroat: $("#sore_throat").is(":checked"),
-        //                     innoculated: $("#innoculated").is(":checked")
-        //                 })
+                var formData  = $aireForm.serializeJSON({parseAll: true}),
+                    region    = new Region(formData.region),
+                    infraestructura  = new Infraestructura(formData.infraestructura),
+                    sistema = new Sistema(formData.sistema),
+                    session = flow.getSession(region, infraestructura, sistema);
 
+                if ($tipoEdificacion.val() === "vivienda") {
+                    session.assert(new Vivienda(formData.vivienda))
+                } else {
+                    session.assert(new Edificio(formData.edificio))
+                }
 
-        //             }
-
-        //             function run() {
-        //                 var d, t;
-        //                 statsListener.listen(flow.getSession(createPatient()))
-        //                         .on("diagnosis", function (diagnosis) {
-        //                             d = diagnosis;
-        //                         })
-        //                         .on("treatment", function (treatment) {
-        //                             t = treatment;
-        //                         })
-        //                         .match().then(function () {
-        //                             if (t && d) {
-        //                                 resultsContainer.append($("<div/>", {
-        //                                     text: d.name + "'s diagnosis is " + d.diagnosis + " we recommend " + t.treatment
-        //                                 }))
-        //                             }
-        //                         });
-        //             }
-
-        //             clear();
-
-        //             $("form").on("submit", function () {
-        //                 if ($("#name").val()) {
-        //                     $(".errors").empty();
-        //                     run();
-        //                 } else {
-        //                     $(".errors").append("<div>Patient Name Required</div>");
-        //                 }
-        //                 return false;
-        //             });
-
-        //             // var height = $(document).height() - $("#manners .header").height() - 100;
-        //             // $(".editor-container").height(height);
-
-        //             // var editor = ace.edit("editor");
-        //             // //editor.setTheme("ace/theme/monokai");
-        //             // var session = editor.getSession();
-        //             // session.setMode("ace/mode/javascript");
-        //             // session.setValue(res);
-        //             // editor.setReadOnly(true);
-
-
+                session.match().then(function() {
+                    console.log(session.getFacts());
+                    $resultado.find('.nombre').text(sistema.nombre);
+                    // session.dispose();
+                }, function(error) {
+                    console.log(error);
+                });
+                processing = false;
+            });
         });
+
     });
 </script>
 

@@ -57,7 +57,7 @@
                 </div>
                 <div class="large-6 columns">
                     <label>Pisos
-                        <input type="number" min="2" value="10" />
+                        <input name="edificio[pisos]" type="number" min="2" value="10" />
                     </label>
                 </div>
             </div>
@@ -89,22 +89,27 @@
             <div class="large-12 columns">
                 <h2>Sistema</h2>
 
-                <dl>
-                    <dt>Nombre</dt>
-                    <dd class="nombre"></dd>
-                    <dt>Tipo</dt>
-                    <dd class="tipo"></dd>
-                    <dt>Distribución</dt>
-                    <dd class="distribucion"></dd>
-                    <dt>Velocidad de regulación</dt>
-                    <dd class="velocidadRegulacion"></dd>
-                    <dt>Permite Zonificación</dt>
-                    <dd class="permiteZonificacion"></dd>
-                    <dt>Costo de instalación</dt>
-                    <dd class="costoInstalacion"></dd>
-                    <dt>Costo de mantenimiento</dt>
-                    <dd class="costoMantenimiento"></dd>
-                </dl>
+                <div class="row">
+                    <span class="large-6 columns">
+                        <img src="/images/Fan-Coil.jpg" />
+                    </span>
+                    <dl class="large-6 columns">
+                        <dt>Nombre</dt>
+                        <dd class="nombre"></dd>
+                        <dt>Tipo</dt>
+                        <dd class="tipo"></dd>
+                        <dt>Distribución</dt>
+                        <dd class="distribucion"></dd>
+                        <dt>Velocidad de regulación</dt>
+                        <dd class="velocidadRegulacion"></dd>
+                        <dt>Permite Zonificación</dt>
+                        <dd class="permiteZonificacion"></dd>
+                        <dt>Costo de instalación</dt>
+                        <dd class="costoInstalacion"></dd>
+                        <dt>Costo de mantenimiento</dt>
+                        <dd class="costoMantenimiento"></dd>
+                    </dl>
+                </div>
             </div>
         </div>
     </div>
@@ -156,12 +161,13 @@
                 session.match().then(function() {
                     if (sistema.nombre) {
                         $resultado.find('.nombre').text(sistema.nombre);
-                        $resultado.find('.tipo').text(sistema.tipo);
+                        $resultado.find('.tipo').text(sistema.tipo || "frio/calor");
                         $resultado.find('.distribucion').text(sistema.distribucion || 'individual');
                         $resultado.find('.velocidadRegulacion').text(sistema.velocidadRegulacion || 'normal');
                         $resultado.find('.permiteZonificacion').text(sistema.permiteZonificacion || 'no');
                         $resultado.find('.costoInstalacion').text(sistema.costoInstalacion || 'bajo');
                         $resultado.find('.costoMantenimiento').text(sistema.costoMantenimiento || 'bajo');
+                        $resultado.find('img').attr('src', "/images/" + sistema.nombre + ".jpg")
                         $resultado.show(500);
                     } else {
                         $mensajeError.show(500);

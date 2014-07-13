@@ -10,7 +10,7 @@
 </head>
 <body>
 <div class="row">
-    <div class="large-12 columns">
+    <div id="main-header" class="large-12 columns">
         <h1>Elección de sistema de aire acondicionado</h1>
     </div>
 
@@ -45,11 +45,13 @@
                         </select>
                     </label>
                 </div>
+            </div>
+            <div class="row tipo-edificacion-edificio">
                 <div class="large-6 columns">
                     <label>Desarrollo
                         <select name="edificio[desarrollo]">
                             <option value="horizontal">Horizontal</option>
-                            <option value="vertical">Vertical</option>
+                            <option value="vertical" selected>Vertical</option>
                         </select>
                     </label>
                 </div>
@@ -58,6 +60,8 @@
                         <input type="number" min="2" value="10" />
                     </label>
                 </div>
+            </div>
+            <div class="row tipo-edificacion-vivienda">
                 <div class="large-12 columns">
                     <label>Tamaño
                         <select name="vivienda[tamanio]">
@@ -78,15 +82,31 @@
                     <input id="infraestructura_combustible" type="checkbox" name="infraestructura[combustible]" value="true"><label for="infraestructura_combustible">Combustible</label>
                 </div>
             </div>
-            <input type="submit" value="Diagnose"/>
+            <input type="submit" value="Buscar mejor sistema"/>
         </form>
         <hr/>
-        <h2>Sistema</h2>
+        <div class="row" id="mejor-sistema">
+            <div class="large-12 columns">
+                <h2>Sistema</h2>
 
-        <dl id="mejor-sistema">
-            <dt>Nombre</dt>
-            <dd class="nombre"></dd>
-        </dl>
+                <dl>
+                    <dt>Nombre</dt>
+                    <dd class="nombre"></dd>
+                    <dt>Tipo</dt>
+                    <dd class="tipo"></dd>
+                    <dt>Distribución</dt>
+                    <dd class="distribucion"></dd>
+                    <dt>Velocidad de regulación</dt>
+                    <dd class="velocidadRegulacion"></dd>
+                    <dt>Permite Zonificación</dt>
+                    <dd class="permiteZonificacion"></dd>
+                    <dt>Costo de instalación</dt>
+                    <dd class="costoInstalacion"></dd>
+                    <dt>Costo de mantenimiento</dt>
+                    <dd class="costoMantenimiento"></dd>
+                </dl>
+            </div>
+        </div>
     </div>
 
 </div>
@@ -102,6 +122,7 @@
     $(document).ready(function () {
         var $aireForm = $('form'),
             $resultado = $('#mejor-sistema'),
+            $mensajeError = $('<div>').addClass('alert-box').addClass('alert').text("Ningún sistema se adecúa a sus restricciones").hide().appendTo('#main-header'),
             $tipoEdificacion = $aireForm.find('[name=tipoEdificacion]')
             processing = false;
 
@@ -133,8 +154,18 @@
                 }
 
                 session.match().then(function() {
-                    console.log(session.getFacts());
-                    $resultado.find('.nombre').text(sistema.nombre);
+                    if (sistema.nombre) {
+                        $resultado.find('.nombre').text(sistema.nombre);
+                        $resultado.find('.tipo').text(sistema.tipo);
+                        $resultado.find('.distribucion').text(sistema.distribucion || 'individual');
+                        $resultado.find('.velocidadRegulacion').text(sistema.velocidadRegulacion || 'normal');
+                        $resultado.find('.permiteZonificacion').text(sistema.permiteZonificacion || 'no');
+                        $resultado.find('.costoInstalacion').text(sistema.costoInstalacion || 'bajo');
+                        $resultado.find('.costoMantenimiento').text(sistema.costoMantenimiento || 'bajo');
+                        $resultado.show(500);
+                    } else {
+                        $mensajeError.show(500);
+                    }
                     // session.dispose();
                 }, function(error) {
                     console.log(error);
@@ -142,7 +173,22 @@
                 processing = false;
             });
         });
+        $resultado.hide();
 
+        $aireForm.find('[name=tipoEdificacion]').change(function() {
+            if ($(this).val() == 'edificio') {
+                $aireForm.find('.tipo-edificacion-edificio').show();
+                $aireForm.find('.tipo-edificacion-vivienda').hide();
+            } else {
+                $aireForm.find('.tipo-edificacion-vivienda').show();
+                $aireForm.find('.tipo-edificacion-edificio').hide();
+            }
+        }).change();
+
+        $aireForm.change(function() {
+            $resultado.hide(500);
+            $mensajeError.hide(500);
+        });
     });
 </script>
 
